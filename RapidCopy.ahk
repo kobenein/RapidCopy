@@ -25,7 +25,15 @@ Main() {
     guiX := screenWidth // 4
 
     CreateGui()
+    
+    ; 先用 Hide 畫 GUI (但不顯示)，然後計算實際寬度
+    myGui.Show("Hide x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
+    WinGetPos(,,&actualWidth,, myGui.Hwnd)
+
+    ; 重計算 GUI 的位置，讓它水平置中
+    guiX := (screenWidth - actualWidth) // 2
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
+
     SetRoundCorners(myGui.Hwnd, collapsedHeight)
     WinSetTransparent(128, myGui.Hwnd)
 
