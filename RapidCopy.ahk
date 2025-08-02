@@ -8,13 +8,13 @@ CoordMode "Mouse", "Screen"
 global isExpanded := false
 global collapsedHeight := 5, expandedHeight := 800
 global guiWidth := 0, guiX := 0, guiY := 0
-global myGui, exitBtn, contentListView
+global myGui, exitBtn, contentListView, plusBtn, minusBtn, fontSize
 
 ; --- 初始化 ---
 Main()
 
 Main() {
-    global guiWidth, guiX, guiY
+    global guiWidth, guiX, guiY, fontSize
     if !DllCall("SetProcessDpiAwarenessContext", "Int", -4)
         DllCall("SetProcessDPIAware")
 
@@ -23,6 +23,7 @@ Main() {
     guiWidth := screenWidth // 2
     guiX := screenWidth // 4
     guiY := 0
+    fontSize := 14
 
     CreateGui()
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
@@ -34,18 +35,22 @@ Main() {
 
 ; --- GUI 控制 ---
 CreateGui() {
-    global myGui, exitBtn, contentListView, guiWidth
+    global myGui, exitBtn, contentListView, guiWidth, plusBtn, minusBtn, fontSize
     myGui := Gui("+AlwaysOnTop -Caption +ToolWindow", "RapidCopy")
     myGui.BackColor := "EEEEEF"
-    myGui.SetFont("s14", "Microsoft YaHei UI") ; s12 代表 12 號字體
+    myGui.SetFont("s" fontSize, "Microsoft YaHei UI")
     exitBtn := myGui.Add("Button", "w80 h30 Hidden", "離開")
     exitBtn.OnEvent("Click", (*) => ExitApp())
+    plusBtn := myGui.Add("Button", "w30 h30 Hidden", "+")
+    plusBtn.OnEvent("Click", IncreaseFontSize)
+    minusBtn := myGui.Add("Button", "w30 h30 Hidden", "-")
+    minusBtn.OnEvent("Click", DecreaseFontSize)
     contentListView := myGui.Add("ListView", "w" (guiWidth - 40) " h" (expandedHeight - 60) " Hidden -Hdr", ["內容"])
     contentListView.OnEvent("Click", OnListViewClick)
 }
 
 Expand() {
-    global isExpanded, guiX, guiY, guiWidth, expandedHeight, myGui, exitBtn, contentListView
+    global isExpanded, guiX, guiY, guiWidth, expandedHeight, myGui, exitBtn, contentListView, plusBtn, minusBtn
     if (isExpanded)
         return
     isExpanded := true
@@ -53,7 +58,12 @@ Expand() {
     SetTimer(CheckMouseHover, 0) ; 停止偵測滑鼠移入
 
     exitBtn.Visible := true
+    plusBtn.Visible := true
+    minusBtn.Visible := true
     contentListView.Visible := true
+    
+    minusBtn.Move(guiWidth - 160, expandedHeight - 40)
+    plusBtn.Move(guiWidth - 125, expandedHeight - 40)
     exitBtn.Move(guiWidth - 90, expandedHeight - 40)
     contentListView.Move(20, 20)
 
@@ -69,7 +79,7 @@ Expand() {
 }
 
 Collapse() {
-    global isExpanded, guiX, guiY, guiWidth, collapsedHeight, myGui, exitBtn, contentListView
+    global isExpanded, guiX, guiY, guiWidth, collapsedHeight, myGui, exitBtn, contentListView, plusBtn, minusBtn
     if (!isExpanded)
         return
     isExpanded := false
@@ -78,6 +88,8 @@ Collapse() {
     SetTimer(CheckMouseHover, 50) ; 重新開始偵測滑鼠移入
 
     exitBtn.Visible := false
+    plusBtn.Visible := false
+    minusBtn.Visible := false
     contentListView.Visible := false
 
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
@@ -105,6 +117,46 @@ OnListViewClick(lv, rowNumber) {
         SetTimer(() => ToolTip(), -1000)
         SetTimer(Collapse, -200)
     }
+}
+
+IncreaseFontSize(*) {
+    global fontSize
+    fontSize += 2
+    UpdateGuiFont()
+}
+
+DecreaseFontSize(*) {
+    global fontSize
+    if (fontSize > 8) {
+        fontSize -= 2
+        UpdateGuiFont()
+    }
+}
+
+UpdateGuiFont() {
+    global myGui, fontSize, contentListView
+
+    ; Store current content
+    items := []
+    Loop contentListView.GetCount()
+        items.Push(contentListView.GetText(A_Index))
+
+    ; Store position and delete
+    contentListView.GetPos(&lvX, &lvY, &lvW, &lvH)
+    contentListView.Delete()
+
+    ; Set font for the new control
+    myGui.SetFont("s" . fontSize, "Microsoft YaHei UI")
+
+    ; Recreate the ListView
+    contentListView := myGui.Add("ListView", "x" lvX " y" lvY " w" lvW " h" lvH " -Hdr", ["內容"])
+    contentListView.OnEvent("Click", OnListViewClick)
+
+    ; Repopulate
+    for item in items
+        contentListView.Add("", item)
+    
+    contentListView.ModifyCol(1, "AutoHdr")
 }
 
 PopulateListView() {
