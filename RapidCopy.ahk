@@ -6,15 +6,16 @@ CoordMode "Mouse", "Screen"
 
 ; --- 全域變數 ---
 global isExpanded := false
-global collapsedHeight := 5, expandedHeight := 800
+global fontSize := 14
+global collapsedHeight := 6, expandedHeight := 800
 global guiWidth := 0, guiX := 0, guiY := 0
-global myGui, exitBtn, contentListView, fontSize
+global myGui, exitBtn, contentListView
 
 ; --- 初始化 ---
 Main()
 
 Main() {
-    global guiWidth, guiX, guiY, fontSize
+    global guiWidth, guiX, guiY
     if !DllCall("SetProcessDpiAwarenessContext", "Int", -4)
         DllCall("SetProcessDPIAware")
 
@@ -23,11 +24,10 @@ Main() {
     guiWidth := screenWidth // 2
     guiX := screenWidth // 4
     guiY := 0
-    fontSize := 14
 
     CreateGui()
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
-    SetRoundCorners(myGui.Hwnd, 2)
+    SetRoundCorners(myGui.Hwnd, collapsedHeight)
     WinSetTransparent(128, myGui.Hwnd)
 
     SetTimer(CheckMouseHover, 50)
@@ -35,10 +35,10 @@ Main() {
 
 ; --- GUI 控制 ---
 CreateGui() {
-    global myGui, exitBtn, contentListView, guiWidth, fontSize
+    global myGui, exitBtn, contentListView, guiWidth
     myGui := Gui("+AlwaysOnTop -Caption +ToolWindow", "RapidCopy")
     myGui.BackColor := "EEEEEF"
-    myGui.SetFont("s" fontSize, "Microsoft YaHei UI")
+    myGui.SetFont("s" fontSize, "微軟正黑體 Bold")
     exitBtn := myGui.Add("Button", "w80 h30 Hidden", "離開")
     exitBtn.OnEvent("Click", (*) => ExitApp())
     contentListView := myGui.Add("ListView", "w" (guiWidth - 40) " h" (expandedHeight - 60) " Hidden -Hdr", ["內容"])
@@ -71,7 +71,7 @@ Expand() {
 }
 
 Collapse() {
-    global isExpanded, guiX, guiY, guiWidth, collapsedHeight, myGui, exitBtn, contentListView
+    global isExpanded, guiX, guiY, guiWidth, myGui, exitBtn, contentListView
     if (!isExpanded)
         return
     isExpanded := false
@@ -109,22 +109,8 @@ OnListViewClick(lv, rowNumber) {
     }
 }
 
-IncreaseFontSize(*) {
-    global fontSize
-    fontSize += 2
-    UpdateGuiFont()
-}
-
-DecreaseFontSize(*) {
-    global fontSize
-    if (fontSize > 8) {
-        fontSize -= 2
-        UpdateGuiFont()
-    }
-}
-
 UpdateGuiFont() {
-    global myGui, fontSize, contentListView
+    global myGui, contentListView
 
     ; Store current content
     items := []
@@ -134,9 +120,6 @@ UpdateGuiFont() {
     ; Store position and delete
     contentListView.GetPos(&lvX, &lvY, &lvW, &lvH)
     contentListView.Delete()
-
-    ; Set font for the new control
-    myGui.SetFont("s" . fontSize, "Microsoft YaHei UI")
 
     ; Recreate the ListView
     contentListView := myGui.Add("ListView", "x" lvX " y" lvY " w" lvW " h" lvH " -Hdr", ["內容"])
