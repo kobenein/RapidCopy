@@ -135,9 +135,21 @@ PopulateListView() {
         contentListView.Add("", "檔案是空的或讀取失敗")
         return
     }
+
+    wasLastLineBlank := false
     Loop Parse, fileContent, "`n", "`r" {
-        if (A_LoopField != "")
-            contentListView.Add("", A_LoopField)
+        currentLine := A_LoopField
+        if (SubStr(Trim(currentLine), 1, 1) != "#") {
+            if (currentLine = "") {
+                if (!wasLastLineBlank) {
+                    contentListView.Add("", "")
+                    wasLastLineBlank := true
+                }
+            } else {
+                contentListView.Add("", currentLine)
+                wasLastLineBlank := false
+            }
+        }
     }
     contentListView.ModifyCol(1, "AutoHdr")
 }
