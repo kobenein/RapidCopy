@@ -155,7 +155,7 @@ PopulateListView() {
 
         if (currentLine = "") {
             if (!wasLastLineBlank) {
-                rowNum := contentListView.Add("", "")
+                rowNum := contentListView.Add("", "****************************************")
                 g_lineGroups[rowNum] := ""
                 wasLastLineBlank := true
             }
