@@ -1,6 +1,6 @@
 ; TODO
+; 修正: 多行顯示要區別
 ; 功能: 選擇性 在上或左
-; 功能: 支援文件換行符號
 
 
 #Requires AutoHotkey v2.0
@@ -117,10 +117,13 @@ CheckFocusTimer(*) {
 OnListViewClick(lv, rowNumber) {
     global g_lineGroups
     if (rowNumber > 0) {
-        A_Clipboard := g_lineGroups[rowNumber]
-        ToolTip("已複製: " A_Clipboard)
-        SetTimer(() => ToolTip(), -2000)
-        SetTimer(Collapse, -400)
+        content := g_lineGroups[rowNumber]
+        if (content != "") {
+            A_Clipboard := content
+            ToolTip("已複製: " A_Clipboard)
+            SetTimer(() => ToolTip(), -2000)
+            SetTimer(Collapse, -400)
+        }
     }
 }
 
