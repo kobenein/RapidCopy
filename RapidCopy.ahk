@@ -18,6 +18,7 @@ global collapsedWidth := 0, collapsedX := 0
 global expandedWidth := 0, expandedX := 0
 global guiY := 0
 global myGui, exitBtn, contentListView
+global g_lineGroups := Map()
 
 ; --- 初始化 ---
 Main()
@@ -114,8 +115,9 @@ CheckFocusTimer(*) {
 }
 
 OnListViewClick(lv, rowNumber) {
+    global g_lineGroups
     if (rowNumber > 0) {
-        A_Clipboard := lv.GetText(rowNumber)
+        A_Clipboard := g_lineGroups[rowNumber]
         ToolTip("已複製: " A_Clipboard)
         SetTimer(() => ToolTip(), -2000)
         SetTimer(Collapse, -400)
@@ -123,9 +125,10 @@ OnListViewClick(lv, rowNumber) {
 }
 
 PopulateListView() {
-    global contentListView
+    global contentListView, g_lineGroups
     filePath := A_ScriptDir "\RapidCopy.txt"
     contentListView.Delete()
+    g_lineGroups.Clear()
     if !FileExist(filePath) {
         contentListView.Add("", "找不到 'RapidCopy.txt'")
         return
@@ -139,20 +142,30 @@ PopulateListView() {
     wasLastLineBlank := false
     Loop Parse, fileContent, "`n", "`r" {
         currentLine := A_LoopField
-        if (SubStr(Trim(currentLine), 1, 1) != "#") {
-            if (currentLine = "") {
-                if (!wasLastLineBlank) {
-                    contentListView.Add("", "")
-                    wasLastLineBlank := true
-                }
-            } else {
-                contentListView.Add("", currentLine)
-                wasLastLineBlank := false
+        if (SubStr(Trim(currentLine), 1, 1) = "#") {
+            continue
+        }
+
+        if (currentLine = "") {
+            if (!wasLastLineBlank) {
+                rowNum := contentListView.Add("", "")
+                g_lineGroups[rowNum] := ""
+                wasLastLineBlank := true
+            }
+        } else {
+            wasLastLineBlank := false
+            textForClipboard := StrReplace(currentLine, "\n", "`n")
+            
+            displayParts := StrSplit(currentLine, "\n")
+            for part in displayParts {
+                rowNum := contentListView.Add("", part)
+                g_lineGroups[rowNum] := textForClipboard
             }
         }
     }
     contentListView.ModifyCol(1, "AutoHdr")
 }
+
 
 ; --- 輔助函式 ---
 GetPhysicalScreenResolution() {
