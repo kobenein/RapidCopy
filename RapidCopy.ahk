@@ -14,6 +14,7 @@ CoordMode "Mouse", "Screen"
 ; --- 全域變數 ---
 global isExpanded := false
 global fontSize := 14
+global ZoomFactor := GetZoomFactor()
 global collapsedHeight := 6, expandedHeight := 800
 global guiWidth := 0, guiX := 0, guiY := 0
 global myGui, exitBtn, contentListView
@@ -22,27 +23,18 @@ global myGui, exitBtn, contentListView
 Main()
 
 Main() {
-    global guiWidth, guiX
-    if !DllCall("SetProcessDpiAwarenessContext", "Int", -4)
-        DllCall("SetProcessDPIAware")
+    global guiWidth, guiX, ZoomFactor
 
     res := GetPhysicalScreenResolution()
     screenWidth := res[1]
-    guiWidth := screenWidth // 2
+    guiWidth := Round(screenWidth / 2 / ZoomFactor)
     guiX := screenWidth // 4
 
     CreateGui()
-    
-    ; 先用 Hide 畫 GUI (但不顯示)，然後計算實際寬度
-    myGui.Show("Hide x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
-    WinGetPos(,,&actualWidth,, myGui.Hwnd)
-
-    ; 重計算 GUI 的位置，讓它水平置中
-    guiX := (screenWidth - actualWidth) // 2
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
 
     SetRoundCorners(myGui.Hwnd, collapsedHeight)
-    WinSetTransparent(128, myGui.Hwnd)
+    WinSetTransparent(0x80, myGui.Hwnd)
 
     SetTimer(CheckMouseHover, 50)
 }
@@ -76,7 +68,7 @@ Expand() {
     PopulateListView()
 
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" expandedHeight)
-    WinSetTransparent(255, myGui.Hwnd)
+    WinSetTransparent(0xBF, myGui.Hwnd)
     SetRoundCorners(myGui.Hwnd, 10)
 
     ; **關鍵**：強制啟用 GUI 並在之後開始檢查焦點
@@ -97,7 +89,7 @@ Collapse() {
     contentListView.Visible := false
 
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
-    WinSetTransparent(128, myGui.Hwnd)
+    WinSetTransparent(0x80, myGui.Hwnd)
     SetRoundCorners(myGui.Hwnd, 2)
 }
 
@@ -121,29 +113,6 @@ OnListViewClick(lv, rowNumber) {
         SetTimer(() => ToolTip(), -2000)
         SetTimer(Collapse, -400)
     }
-}
-
-UpdateGuiFont() {
-    global myGui, contentListView
-
-    ; Store current content
-    items := []
-    Loop contentListView.GetCount()
-        items.Push(contentListView.GetText(A_Index))
-
-    ; Store position and delete
-    contentListView.GetPos(&lvX, &lvY, &lvW, &lvH)
-    contentListView.Delete()
-
-    ; Recreate the ListView
-    contentListView := myGui.Add("ListView", "x" lvX " y" lvY " w" lvW " h" lvH " -Hdr", ["內容"])
-    contentListView.OnEvent("Click", OnListViewClick)
-
-    ; Repopulate
-    for item in items
-        contentListView.Add("", item)
-    
-    contentListView.ModifyCol(1, "AutoHdr")
 }
 
 PopulateListView() {
