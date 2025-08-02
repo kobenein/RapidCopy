@@ -1,5 +1,4 @@
 ; TODO
-; BUG: 觸發區域與GUI寬度不同步
 ; 功能: 選擇性 在上或左
 ; 功能: 摺疊時寬度為螢幕解析度的1/4，展開時寬度為螢幕解析度的1/2
 ; 功能: 支援文件換行符號
@@ -90,14 +89,14 @@ Collapse() {
 
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
     WinSetTransparent(0x80, myGui.Hwnd)
-    SetRoundCorners(myGui.Hwnd, 2)
+    SetRoundCorners(myGui.Hwnd, collapsedHeight)
 }
 
 ; --- 事件與計時器 ---
 CheckMouseHover(*) {
     local mx, my
     MouseGetPos(&mx, &my)
-    if (mx >= guiX && mx <= guiX + guiWidth && my >= guiY && my <= guiY + collapsedHeight)
+    if (mx >= guiX && mx <= guiX + guiWidth*ZoomFactor && my >= guiY && my <= guiY + collapsedHeight*ZoomFactor)
         Expand()
 }
 
