@@ -55,7 +55,7 @@ Expand() {
     exitBtn.Visible := true
     contentListView.Visible := true
     
-    exitBtn.Move(guiWidth - 90, expandedHeight - 40)
+    exitBtn.Move((guiWidth // 2) - 40, expandedHeight - 40)
     contentListView.Move(20, 20)
 
     PopulateListView()
