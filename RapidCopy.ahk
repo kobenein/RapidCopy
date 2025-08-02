@@ -8,7 +8,7 @@ CoordMode "Mouse", "Screen"
 global isExpanded := false
 global collapsedHeight := 5, expandedHeight := 800
 global guiWidth := 0, guiX := 0, guiY := 0
-global myGui, exitBtn, contentListView, plusBtn, minusBtn, fontSize
+global myGui, exitBtn, contentListView, fontSize
 
 ; --- 初始化 ---
 Main()
@@ -35,22 +35,18 @@ Main() {
 
 ; --- GUI 控制 ---
 CreateGui() {
-    global myGui, exitBtn, contentListView, guiWidth, plusBtn, minusBtn, fontSize
+    global myGui, exitBtn, contentListView, guiWidth, fontSize
     myGui := Gui("+AlwaysOnTop -Caption +ToolWindow", "RapidCopy")
     myGui.BackColor := "EEEEEF"
     myGui.SetFont("s" fontSize, "Microsoft YaHei UI")
     exitBtn := myGui.Add("Button", "w80 h30 Hidden", "離開")
     exitBtn.OnEvent("Click", (*) => ExitApp())
-    plusBtn := myGui.Add("Button", "w30 h30 Hidden", "+")
-    plusBtn.OnEvent("Click", IncreaseFontSize)
-    minusBtn := myGui.Add("Button", "w30 h30 Hidden", "-")
-    minusBtn.OnEvent("Click", DecreaseFontSize)
     contentListView := myGui.Add("ListView", "w" (guiWidth - 40) " h" (expandedHeight - 60) " Hidden -Hdr", ["內容"])
     contentListView.OnEvent("Click", OnListViewClick)
 }
 
 Expand() {
-    global isExpanded, guiX, guiY, guiWidth, expandedHeight, myGui, exitBtn, contentListView, plusBtn, minusBtn
+    global isExpanded, guiX, guiY, guiWidth, expandedHeight, myGui, exitBtn, contentListView
     if (isExpanded)
         return
     isExpanded := true
@@ -58,12 +54,8 @@ Expand() {
     SetTimer(CheckMouseHover, 0) ; 停止偵測滑鼠移入
 
     exitBtn.Visible := true
-    plusBtn.Visible := true
-    minusBtn.Visible := true
     contentListView.Visible := true
     
-    minusBtn.Move(guiWidth - 160, expandedHeight - 40)
-    plusBtn.Move(guiWidth - 125, expandedHeight - 40)
     exitBtn.Move(guiWidth - 90, expandedHeight - 40)
     contentListView.Move(20, 20)
 
@@ -79,7 +71,7 @@ Expand() {
 }
 
 Collapse() {
-    global isExpanded, guiX, guiY, guiWidth, collapsedHeight, myGui, exitBtn, contentListView, plusBtn, minusBtn
+    global isExpanded, guiX, guiY, guiWidth, collapsedHeight, myGui, exitBtn, contentListView
     if (!isExpanded)
         return
     isExpanded := false
@@ -88,8 +80,6 @@ Collapse() {
     SetTimer(CheckMouseHover, 50) ; 重新開始偵測滑鼠移入
 
     exitBtn.Visible := false
-    plusBtn.Visible := false
-    minusBtn.Visible := false
     contentListView.Visible := false
 
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
