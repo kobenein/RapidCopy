@@ -180,3 +180,14 @@ SetRoundCorners(hwnd, radius) {
     rgn := DllCall("CreateRoundRectRgn", "Int", 0, "Int", 0, "Int", width, "Int", height, "Int", radius, "Int", radius, "Ptr")
     DllCall("SetWindowRgn", "Ptr", hwnd, "Ptr", rgn, "Int", true)
 }
+
+GetZoomFactor() {
+    global myGui
+    ; 製作一個 100 x 100 的 GUI
+    myGui := Gui("+AlwaysOnTop -Caption +ToolWindow", "RapidCopy")
+    myGui.Show("Hide x 0 y 0 w 100 h 100")
+    WinGetPos(,, &width,, myGui.Hwnd)
+    myGui.Destroy()
+    ; Msgbox "Zoom factor: " width/100
+    return width/100
+}
