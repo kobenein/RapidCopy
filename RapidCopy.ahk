@@ -1,6 +1,5 @@
 ; TODO
 ; 功能: 選擇性 在上或左
-; 功能: 摺疊時寬度為螢幕解析度的1/4，展開時寬度為螢幕解析度的1/2
 ; 功能: 支援文件換行符號
 
 
@@ -15,22 +14,30 @@ global isExpanded := false
 global fontSize := 14
 global ZoomFactor := GetZoomFactor()
 global collapsedHeight := 6, expandedHeight := 800
-global guiWidth := 0, guiX := 0, guiY := 0
+global collapsedWidth := 0, collapsedX := 0
+global expandedWidth := 0, expandedX := 0
+global guiY := 0
 global myGui, exitBtn, contentListView
 
 ; --- 初始化 ---
 Main()
 
 Main() {
-    global guiWidth, guiX, ZoomFactor
+    global collapsedWidth, collapsedX, expandedWidth, expandedX, ZoomFactor, guiY
 
     res := GetPhysicalScreenResolution()
     screenWidth := res[1]
-    guiWidth := Round(screenWidth / 2 / ZoomFactor)
-    guiX := screenWidth // 4
+
+    ; 展開時的寬度和座標
+    expandedWidth := Round(screenWidth / 2 / ZoomFactor)
+    expandedX := screenWidth // 4
+
+    ; 摺疊時的寬度和座標
+    collapsedWidth := Round(screenWidth / 4 / ZoomFactor)
+    collapsedX := Round((screenWidth - (screenWidth / 4)) / 2)
 
     CreateGui()
-    myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
+    myGui.Show("NA x" collapsedX " y" guiY " w" collapsedWidth " h" collapsedHeight)
 
     SetRoundCorners(myGui.Hwnd, collapsedHeight)
     WinSetTransparent(0x80, myGui.Hwnd)
@@ -40,18 +47,18 @@ Main() {
 
 ; --- GUI 控制 ---
 CreateGui() {
-    global myGui, exitBtn, contentListView
+    global myGui, exitBtn, contentListView, expandedWidth
     myGui := Gui("+AlwaysOnTop -Caption +ToolWindow", "RapidCopy")
     myGui.BackColor := "EEEEEF"
     myGui.SetFont("s" fontSize, "微軟正黑體 Bold")
     exitBtn := myGui.Add("Button", "w80 h30 Hidden", "離開")
     exitBtn.OnEvent("Click", (*) => ExitApp())
-    contentListView := myGui.Add("ListView", "w" (guiWidth - 40) " h" (expandedHeight - 80) " Hidden -Hdr", ["內容"])
+    contentListView := myGui.Add("ListView", "w" (expandedWidth - 40) " h" (expandedHeight - 80) " Hidden -Hdr", ["內容"])
     contentListView.OnEvent("Click", OnListViewClick)
 }
 
 Expand() {
-    global isExpanded, myGui, exitBtn, contentListView
+    global isExpanded, myGui, exitBtn, contentListView, expandedWidth, expandedX, expandedHeight, guiY
     if (isExpanded)
         return
     isExpanded := true
@@ -61,12 +68,12 @@ Expand() {
     exitBtn.Visible := true
     contentListView.Visible := true
     
-    exitBtn.Move((guiWidth // 2) - 40, expandedHeight - 40)
+    exitBtn.Move((expandedWidth // 2) - 40, expandedHeight - 40)
     contentListView.Move(20, 20)
 
     PopulateListView()
 
-    myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" expandedHeight)
+    myGui.Show("NA x" expandedX " y" guiY " w" expandedWidth " h" expandedHeight)
     WinSetTransparent(0xBF, myGui.Hwnd)
     SetRoundCorners(myGui.Hwnd, 10)
 
@@ -76,7 +83,7 @@ Expand() {
 }
 
 Collapse() {
-    global isExpanded, myGui, exitBtn, contentListView
+    global isExpanded, myGui, exitBtn, contentListView, collapsedWidth, collapsedX, collapsedHeight, guiY
     if (!isExpanded)
         return
     isExpanded := false
@@ -87,16 +94,17 @@ Collapse() {
     exitBtn.Visible := false
     contentListView.Visible := false
 
-    myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
+    myGui.Show("NA x" collapsedX " y" guiY " w" collapsedWidth " h" collapsedHeight)
     WinSetTransparent(0x80, myGui.Hwnd)
     SetRoundCorners(myGui.Hwnd, collapsedHeight)
 }
 
 ; --- 事件與計時器 ---
 CheckMouseHover(*) {
+    global collapsedX, collapsedWidth, guiY, collapsedHeight, ZoomFactor
     local mx, my
     MouseGetPos(&mx, &my)
-    if (mx >= guiX && mx <= guiX + guiWidth*ZoomFactor && my >= guiY && my <= guiY + collapsedHeight*ZoomFactor)
+    if (mx >= collapsedX && mx <= collapsedX + collapsedWidth * ZoomFactor && my >= guiY && my <= guiY + collapsedHeight * ZoomFactor)
         Expand()
 }
 
