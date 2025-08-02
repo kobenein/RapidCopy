@@ -15,7 +15,7 @@ global myGui, exitBtn, contentListView
 Main()
 
 Main() {
-    global guiWidth, guiX, guiY
+    global guiWidth, guiX
     if !DllCall("SetProcessDpiAwarenessContext", "Int", -4)
         DllCall("SetProcessDPIAware")
 
@@ -23,7 +23,6 @@ Main() {
     screenWidth := res[1]
     guiWidth := screenWidth // 2
     guiX := screenWidth // 4
-    guiY := 0
 
     CreateGui()
     myGui.Show("NA x" guiX " y" guiY " w" guiWidth " h" collapsedHeight)
@@ -35,18 +34,18 @@ Main() {
 
 ; --- GUI 控制 ---
 CreateGui() {
-    global myGui, exitBtn, contentListView, guiWidth
+    global myGui, exitBtn, contentListView
     myGui := Gui("+AlwaysOnTop -Caption +ToolWindow", "RapidCopy")
     myGui.BackColor := "EEEEEF"
     myGui.SetFont("s" fontSize, "微軟正黑體 Bold")
     exitBtn := myGui.Add("Button", "w80 h30 Hidden", "離開")
     exitBtn.OnEvent("Click", (*) => ExitApp())
-    contentListView := myGui.Add("ListView", "w" (guiWidth - 40) " h" (expandedHeight - 60) " Hidden -Hdr", ["內容"])
+    contentListView := myGui.Add("ListView", "w" (guiWidth - 40) " h" (expandedHeight - 80) " Hidden -Hdr", ["內容"])
     contentListView.OnEvent("Click", OnListViewClick)
 }
 
 Expand() {
-    global isExpanded, guiX, guiY, guiWidth, expandedHeight, myGui, exitBtn, contentListView
+    global isExpanded, myGui, exitBtn, contentListView
     if (isExpanded)
         return
     isExpanded := true
@@ -71,7 +70,7 @@ Expand() {
 }
 
 Collapse() {
-    global isExpanded, guiX, guiY, guiWidth, myGui, exitBtn, contentListView
+    global isExpanded, myGui, exitBtn, contentListView
     if (!isExpanded)
         return
     isExpanded := false
@@ -104,8 +103,8 @@ OnListViewClick(lv, rowNumber) {
     if (rowNumber > 0) {
         A_Clipboard := lv.GetText(rowNumber)
         ToolTip("已複製: " A_Clipboard)
-        SetTimer(() => ToolTip(), -1000)
-        SetTimer(Collapse, -200)
+        SetTimer(() => ToolTip(), -2000)
+        SetTimer(Collapse, -400)
     }
 }
 
